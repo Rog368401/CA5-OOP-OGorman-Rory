@@ -42,8 +42,10 @@ public class MainApp {
                 case 2: {
                     EmployeeDaoInterface IEmployeeDao = new MySqlEmployeeDao();
                     try {
+                        Scanner kbrd = new Scanner(System.in);
                         System.out.println("\nCall: findEmployeeByID()");
-                        int employeeID = 1;
+                        System.out.println("Please enter ID");
+                        int employeeID = kbrd.nextInt();
                         Employee employee = IEmployeeDao.findEmployeeById(employeeID);
 
                         if (employee != null) // null returned if userid and password not valid
@@ -52,9 +54,9 @@ public class MainApp {
                             System.out.println("Employee not found");
                     }
                     catch(DaoException e )
-                        {
-                            e.printStackTrace();
-                        }
+                    {
+                        e.printStackTrace();
+                    }
 
 
                     break;

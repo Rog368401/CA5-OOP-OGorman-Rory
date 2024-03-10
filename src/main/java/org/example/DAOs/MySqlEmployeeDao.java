@@ -68,7 +68,7 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
      * Main author: Rory O'Gorman
      */
     //Feature 2: find a single employee by ID
-   @Override
+    @Override
     public Employee findEmployeeById(int employeeID) throws DaoException {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
@@ -93,7 +93,7 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
 
 
 
-                Employee e = new Employee(empID, firstName, lastName, age, department, role, hourlyRate);
+                employee = new Employee(empID, firstName, lastName, age, department, role, hourlyRate);
             }
         } catch (SQLException e) {
             throw new DaoException("findUserByUsernamePassword() " + e.getMessage());
