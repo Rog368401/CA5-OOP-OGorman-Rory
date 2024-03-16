@@ -193,4 +193,78 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
         return e;
     }
 
+    /**
+     * Main author: Rory O'Gorman
+     */
+    //Feature 5: update an entity by ID
+    @Override
+
+
+    public Employee updateEmployee(Employee e, List<String> fieldsToUpdate) throws DaoException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+            connection = this.getConnection();
+
+            String updateQuery = "UPDATE retail_store.employees SET ";
+            boolean isFirstField = true;
+            for (String field : fieldsToUpdate) {
+                if (!isFirstField) {
+                    updateQuery += ", ";
+                }
+                updateQuery += field + "=?";
+                isFirstField = false;
+            }
+            updateQuery += " WHERE empID=?";
+
+            preparedStatement = connection.prepareStatement(updateQuery);
+            int parameterIndex = 1;
+            for (String field : fieldsToUpdate) {
+                switch (field) {
+                    case "first_name":
+                        preparedStatement.setString(parameterIndex++, e.getFirstName());
+                        break;
+                    case "last_name":
+                        preparedStatement.setString(parameterIndex++, e.getLastName());
+                        break;
+                    case "age":
+                        preparedStatement.setInt(parameterIndex++, e.getAge());
+                        break;
+                    case "department":
+                        preparedStatement.setString(parameterIndex++, e.getDepartment());
+                        break;
+                    case "role":
+                        preparedStatement.setString(parameterIndex++, e.getRole());
+                        break;
+                    case "hourly_rate":
+                        preparedStatement.setFloat(parameterIndex++, e.getHourlyRate());
+                        break;
+                }
+            }
+            preparedStatement.setInt(parameterIndex, e.getEmpID()); // Assuming getEmployeeId() returns the ID of the employee to update
+
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new DaoException("No employee with ID " + e.getEmpID() + " found to update.");
+            }
+        } catch (SQLException ex) {
+            throw new DaoException("updateEmployee() " + ex.getMessage());
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    freeConnection(connection);
+                }
+            } catch (SQLException ex) {
+                throw new DaoException("updateEmployee() " + ex.getMessage());
+            }
+        }
+
+        return e;
+    }
+
 }

@@ -5,6 +5,7 @@ import org.example.DAOs.MySqlEmployeeDao;
 import org.example.DTOs.Employee;
 import org.example.Exceptions.DaoException;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
@@ -17,6 +18,7 @@ public class MainApp {
             System.out.println("2. Get entity by id");
             System.out.println("3. Delete entity by id");
             System.out.println("4. Insert an entity");
+            System.out.println("5. update an entity");
             System.out.println("0. Exit");
             choice = key.nextInt();
             switch (choice) {
@@ -113,6 +115,65 @@ public class MainApp {
                     }
                     break;
                 }
+                case 5: {
+                    EmployeeDaoInterface IUEmployeeDao = new MySqlEmployeeDao();
+                    int empID;
+                    System.out.println("Enter the ID of the employee you wish to update: ");
+                    empID = key.nextInt();
+
+                    key.nextLine();
+
+                    System.out.println("Select fields to update (comma-separated, e.g., first_name,last_name,age): ");
+                    String fieldsInput = key.nextLine();
+                    String[] fields = fieldsInput.split(",");
+                    List<String> fieldsToUpdate = Arrays.asList(fields);
+
+                    Employee updatedEmployee = new Employee(0, null, null, 0, null, null, 0.0f);
+
+                    updatedEmployee.setEmpID(empID);
+                    for (String field : fieldsToUpdate) {
+                        switch (field) {
+                            case "first_name":
+                                System.out.print("Enter new first name: ");
+                                updatedEmployee.setFirstName(key.nextLine());
+                                break;
+                            case "last_name":
+                                System.out.print("Enter new last name: ");
+                                updatedEmployee.setLastName(key.nextLine());
+                                break;
+                            case "age":
+                                System.out.print("Enter new age: ");
+                                updatedEmployee.setAge(key.nextInt());
+                                key.nextLine();
+                                break;
+                            case "department":
+                                System.out.print("Enter new department: ");
+                                updatedEmployee.setDepartment(key.nextLine());
+                                break;
+                            case "role":
+                                System.out.print("Enter new role: ");
+                                updatedEmployee.setRole(key.nextLine());
+                                break;
+                            case "hourly_rate":
+                                System.out.print("Enter new hourly rate: ");
+                                updatedEmployee.setHourlyRate(key.nextFloat());
+                                key.nextLine();
+                                break;
+                        }
+                    }
+
+                    try {
+                        System.out.println("\nCalling updateEmployee()\n");
+                        Employee employee = IUEmployeeDao.updateEmployee(updatedEmployee, fieldsToUpdate);
+                        System.out.println("Employee updated successfully");
+                        System.out.println("Updated Employee: " + employee);
+                    } catch (DaoException ex) {
+                        ex.printStackTrace();
+                    }
+                    break;
+                }
+
+
             }
         } while (choice != 0);
 

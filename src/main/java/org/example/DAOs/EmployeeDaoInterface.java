@@ -13,4 +13,6 @@ public interface EmployeeDaoInterface {
     public Employee InsertEmployee(Employee e)throws DaoException;
 
     public int DeleteEmployee(int id)throws DaoException;
+
+    Employee updateEmployee(Employee e, List<String> fieldsToUpdate) throws DaoException;
 }
