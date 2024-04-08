@@ -8,19 +8,20 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
-public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
+public class MySqlEmployeeDao extends MySqlDao implements EmployeeDaoInterface {
+    Connection connection = null;
+    PreparedStatement preparedStatement = null;
+    ResultSet resultSet = null;
+
     /**
      * Main author: Caitlin Maguire
      */
     //Feature 1: Return a list of all employees and display
     @Override
-    public List<Employee> getAllEmployees() throws DaoException
-    {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+    public List<Employee> getAllEmployees() throws DaoException {
         List<Employee> employeesList = new ArrayList<>();
 
         try {
@@ -64,15 +65,13 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
         }
         return employeesList;
     }
+
     /**
      * Main author: Rory O'Gorman
      */
     //Feature 2: find a single employee by ID
     @Override
     public Employee findEmployeeById(int employeeID) throws DaoException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
         Employee employee = null;
         try {
             connection = this.getConnection();
@@ -92,11 +91,10 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
                 Float hourlyRate = resultSet.getFloat("hourlyRate");
 
 
-
                 employee = new Employee(empID, firstName, lastName, age, department, role, hourlyRate);
             }
         } catch (SQLException e) {
-            throw new DaoException("findUserByUsernamePassword() " + e.getMessage());
+            throw new DaoException("findEmployeeById() " + e.getMessage());
         } finally {
             try {
                 if (resultSet != null) {
@@ -114,36 +112,30 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
         }
         return employee;     // reference to User object, or null value
     }
+
     /**
      * Main author: Jamie Lawlor
      */
     //Feature 3: Delete an entity by key
     @Override
     public int DeleteEmployee(int id) throws DaoException {
-        Connection connection=null;
-        PreparedStatement preparedStatement=null;
-        try{
-            connection=this.getConnection();
-            String DeleteQuery="DELETE FROM employees WHERE employees.empID = ?";
-            preparedStatement= connection.prepareStatement(DeleteQuery);
-            preparedStatement.setInt(1,id);
+        try {
+            connection = this.getConnection();
+            String DeleteQuery = "DELETE FROM employees WHERE employees.empID = ?";
+            preparedStatement = connection.prepareStatement(DeleteQuery);
+            preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
-        } catch(SQLException ex){
-            throw new DaoException("DeleteEmployee() "+ex.getMessage());
-        }finally
-        {
-            try
-            {
-                if (preparedStatement != null)
-                {
+        } catch (SQLException ex) {
+            throw new DaoException("DeleteEmployee() " + ex.getMessage());
+        } finally {
+            try {
+                if (preparedStatement != null) {
                     preparedStatement.close();
                 }
-                if (connection != null)
-                {
+                if (connection != null) {
                     freeConnection(connection);
                 }
-            } catch (SQLException ex)
-            {
+            } catch (SQLException ex) {
                 throw new DaoException("DeleteEmployee() " + ex.getMessage());
             }
         }
@@ -155,102 +147,20 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
      */
     //Feature 4: Insert an entity
     @Override
-    public Employee InsertEmployee(Employee e)throws DaoException{
-        Connection connection=null;
-        PreparedStatement preparedStatement=null;
-
-        try{
-            connection=this.getConnection();
-            String InsertQuery="INSERT INTO retail_store.employees VALUES (null,?,?,?,?,?,?)";
-            preparedStatement= connection.prepareStatement(InsertQuery);
-            preparedStatement.setString(1, e.getFirstName());
-            preparedStatement.setString(2,e.getLastName());
-            preparedStatement.setInt(3,e.getAge());
-            preparedStatement.setString(4,e.getDepartment());
-            preparedStatement.setString(5,e.getRole());
-            preparedStatement.setFloat(6,e.getHourlyRate());
-            preparedStatement.executeUpdate();
-        } catch(SQLException ex){
-            throw new DaoException("InsertEmployee() "+ex.getMessage());
-        }finally
-        {
-            try
-            {
-                if (preparedStatement != null)
-                {
-                    preparedStatement.close();
-                }
-                if (connection != null)
-                {
-                    freeConnection(connection);
-                }
-            } catch (SQLException ex)
-            {
-                throw new DaoException("findUserByUsernamePassword() " + ex.getMessage());
-            }
-        }
-
-        return e;
-    }
-
-    /**
-     * Main author: Rory O'Gorman
-     */
-    //Feature 5: update an entity by ID
-    @Override
-
-
-    public Employee updateEmployee(Employee e, List<String> fieldsToUpdate) throws DaoException {
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-
+    public Employee InsertEmployee(Employee e) throws DaoException {
         try {
             connection = this.getConnection();
-
-            String updateQuery = "UPDATE retail_store.employees SET ";
-            boolean isFirstField = true;
-            for (String field : fieldsToUpdate) {
-                if (!isFirstField) {
-                    updateQuery += ", ";
-                }
-                updateQuery += field + "=?";
-                isFirstField = false;
-            }
-            updateQuery += " WHERE empID=?";
-
-            preparedStatement = connection.prepareStatement(updateQuery);
-            int parameterIndex = 1;
-            for (String field : fieldsToUpdate) {
-                switch (field) {
-                    case "first_name":
-                        preparedStatement.setString(parameterIndex++, e.getFirstName());
-                        break;
-                    case "last_name":
-                        preparedStatement.setString(parameterIndex++, e.getLastName());
-                        break;
-                    case "age":
-                        preparedStatement.setInt(parameterIndex++, e.getAge());
-                        break;
-                    case "department":
-                        preparedStatement.setString(parameterIndex++, e.getDepartment());
-                        break;
-                    case "role":
-                        preparedStatement.setString(parameterIndex++, e.getRole());
-                        break;
-                    case "hourly_rate":
-                        preparedStatement.setFloat(parameterIndex++, e.getHourlyRate());
-                        break;
-                }
-            }
-            preparedStatement.setInt(parameterIndex, e.getEmpID()); // Assuming getEmployeeId() returns the ID of the employee to update
-
-            int rowsAffected = preparedStatement.executeUpdate();
-
-            if (rowsAffected == 0) {
-                throw new DaoException("No employee with ID " + e.getEmpID() + " found to update.");
-            }
+            String InsertQuery = "INSERT INTO retail_store.employees VALUES (null,?,?,?,?,?,?)";
+            preparedStatement = connection.prepareStatement(InsertQuery);
+            preparedStatement.setString(1, e.getFirstName());
+            preparedStatement.setString(2, e.getLastName());
+            preparedStatement.setInt(3, e.getAge());
+            preparedStatement.setString(4, e.getDepartment());
+            preparedStatement.setString(5, e.getRole());
+            preparedStatement.setFloat(6, e.getHourlyRate());
+            preparedStatement.executeUpdate();
         } catch (SQLException ex) {
-            throw new DaoException("updateEmployee() " + ex.getMessage());
+            throw new DaoException("InsertEmployee() " + ex.getMessage());
         } finally {
             try {
                 if (preparedStatement != null) {
@@ -260,11 +170,112 @@ public class MySqlEmployeeDao  extends MySqlDao implements EmployeeDaoInterface{
                     freeConnection(connection);
                 }
             } catch (SQLException ex) {
-                throw new DaoException("updateEmployee() " + ex.getMessage());
+                throw new DaoException("InsertEmployee() " + ex.getMessage());
             }
         }
 
         return e;
     }
+
+//  Feature 5: update an entity by ID
+
+    /**
+     * Main author: Jamie Lawlor
+     */
+    @Override
+    public Employee updateEmployee(int id, Employee e) throws DaoException {
+        EmployeeDaoInterface IUserDao = new MySqlEmployeeDao();
+        try {
+            connection = this.getConnection();
+            String updateQuery = "UPDATE employees SET firstName=?, lastName=?,age=?,department=?,role=?,hourlyRate=? WHERE empID=?";
+            preparedStatement = connection.prepareStatement(updateQuery);
+            if (!e.getFirstName().isEmpty()) {
+                preparedStatement.setString(1, e.getFirstName());
+            } else {
+                preparedStatement.setString(1, IUserDao.findEmployeeById(e.getEmpID()).getFirstName());
+            }
+            if (!e.getLastName().isEmpty()) {
+                preparedStatement.setString(2, e.getLastName());
+            } else {
+                preparedStatement.setString(2, IUserDao.findEmployeeById(e.getEmpID()).getLastName());
+            }
+            if (e.getAge() != 0) {
+                preparedStatement.setInt(3, e.getAge());
+            } else {
+                preparedStatement.setInt(3, IUserDao.findEmployeeById(e.getEmpID()).getAge());
+            }
+            if (!e.getDepartment().isEmpty()) {
+                preparedStatement.setString(4, e.getDepartment());
+            } else {
+                preparedStatement.setString(4, IUserDao.findEmployeeById(e.getEmpID()).getDepartment());
+            }
+            if (!e.getRole().isEmpty()) {
+                preparedStatement.setString(5, e.getRole());
+            } else {
+                preparedStatement.setString(5, IUserDao.findEmployeeById(e.getEmpID()).getRole());
+            }
+            if (e.getHourlyRate() != 0) {
+                preparedStatement.setFloat(6, e.getHourlyRate());
+            } else {
+                preparedStatement.setFloat(6, IUserDao.findEmployeeById(e.getEmpID()).getHourlyRate());
+            }
+            preparedStatement.setInt(7, e.getEmpID());
+            preparedStatement.executeUpdate();
+        } catch (SQLException ex) {
+            throw new DaoException("UpdateEmployee() " + ex.getMessage());
+        } finally {
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    freeConnection(connection);
+                }
+            } catch (SQLException ex) {
+                throw new DaoException("UpdateEmployee() " + ex.getMessage());
+            }
+        }
+        return e;
+    }
+
+    /**
+     * Main author: Jamie Lawlor
+     */
+    //Feature 6: Filter entities
+    @Override
+
+    public List<Employee> findEmployeesUsingFilter(String filter, Comparator<Employee> names) throws DaoException {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        List<Employee> employeesList = new ArrayList<>();
+
+        try {
+            //Get the connection object inherited from MySqlDao
+            connection = this.getConnection();
+
+            String FilterNameQuery = "SELECT * FROM `employees` ORDER BY ?";
+            preparedStatement = connection.prepareStatement(FilterNameQuery);
+            preparedStatement.setString(1, filter);
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                int empID = resultSet.getInt("empID");
+                String firstName = resultSet.getString("firstName");
+                String lastName = resultSet.getString("lastName");
+                int age = resultSet.getInt("age");
+                String department = resultSet.getString("department");
+                String role = resultSet.getString("role");
+                Float hourlyRate = resultSet.getFloat("hourlyRate");
+
+                Employee e = new Employee(empID, firstName, lastName, age, department, role, hourlyRate);
+                employeesList.add(e);
+            }
+            employeesList.sort(names);
+        } catch (SQLException e) {
+            throw new DaoException("FilterEmployees() " + e.getMessage());
+        }
+        return employeesList;
+    }
+
 
 }
