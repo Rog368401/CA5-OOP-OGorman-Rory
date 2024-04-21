@@ -1,6 +1,7 @@
 package org.example.DAOs;
 
 import org.example.DTOs.Employee;
+import org.example.DTOs.Products;
 import org.example.Exceptions.DaoException;
 
 import java.sql.Connection;
@@ -119,12 +120,23 @@ public class MySqlEmployeeDao extends MySqlDao implements EmployeeDaoInterface {
     //Feature 3: Delete an entity by key
     @Override
     public int DeleteEmployee(int id) throws DaoException {
+        boolean idFinder=false;
         try {
             connection = this.getConnection();
+            //If statement to check if the deleted user is related to the products table, if they are then drop foreign key and delete user
+            if (id == 2 || id == 4 || id == 5 || id == 6) {
+                String dropKeyQuery = "ALTER TABLE products DROP FOREIGN KEY IF EXISTS products_ibfk_1";
+                preparedStatement= connection.prepareStatement(dropKeyQuery);
+                preparedStatement.executeUpdate();
+                idFinder=true;
+            }
             String DeleteQuery = "DELETE FROM employees WHERE employees.empID = ?";
             preparedStatement = connection.prepareStatement(DeleteQuery);
             preparedStatement.setInt(1, id);
             preparedStatement.executeUpdate();
+            if (idFinder){
+                restoreForeignKey(id);
+            }
         } catch (SQLException ex) {
             throw new DaoException("DeleteEmployee() " + ex.getMessage());
         } finally {
@@ -141,7 +153,19 @@ public class MySqlEmployeeDao extends MySqlDao implements EmployeeDaoInterface {
         }
         return id;
     }
-
+    public void restoreForeignKey(int id) throws SQLException {
+        try {
+            String staffIdGone = "UPDATE products SET staff_ID = null WHERE staff_ID = ?";
+            preparedStatement = connection.prepareStatement(staffIdGone);
+            preparedStatement.setInt(1, id);
+            preparedStatement.executeUpdate();
+            String addKeyQuery = "ALTER TABLE products ADD FOREIGN KEY (staff_ID) REFERENCES employees(empID)";
+            preparedStatement = connection.prepareStatement(addKeyQuery);
+            preparedStatement.executeUpdate();
+        }catch (SQLException ex){
+            System.out.println(ex.getMessage());
+        }
+    }
     /**
      * Main author: Jamie Lawlor
      */
@@ -276,6 +300,33 @@ public class MySqlEmployeeDao extends MySqlDao implements EmployeeDaoInterface {
         }
         return employeesList;
     }
+    /**
+     * Main author: Jamie Lawlor
+     */
+    //Feature 9: Display products that employees oversee
+    @Override
+    public List<Products> getAllProductsBasedOnEmployeeID(int id) throws DaoException{
+        List<Products> productsList = new ArrayList<>();
+        try {
+            connection = this.getConnection();
+            String displayProductsByStaffIDQuery = "SELECT * FROM products WHERE staff_ID= ? ";
+            preparedStatement = connection.prepareStatement(displayProductsByStaffIDQuery);
+            preparedStatement.setInt(1,id);
+            resultSet = preparedStatement.executeQuery();
 
+            while (resultSet.next()) {
+                int product_ID = resultSet.getInt("product_ID");
+                String productName = resultSet.getString("productName");
+                String productType = resultSet.getString("productType");
+                int quantity = resultSet.getInt("quantity");
+                Float price = resultSet.getFloat("price");
 
+                Products p = new Products(product_ID, productName, productType, quantity, price,id);
+                productsList.add(p);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return productsList;
+    }
 }

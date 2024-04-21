@@ -6,6 +6,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -17,7 +20,7 @@ class MySqlEmployeeDaoTest {
     MySqlEmployeeDao ed = null;
     JsonConverter jc=null;
     Connection connection = null;
-
+    Socket socket = null;
     //Creating the dao class
     @BeforeEach
     void setUp() {
@@ -379,6 +382,32 @@ class MySqlEmployeeDaoTest {
             assertNotNull(convertedList);
             assertEquals("{\"empID\":3,\"firstName\":\"Ruby\",\"lastName\":\"Mullen\",\"age\":25,\"department\":\"Customer Service\",\"role\":\"Customer Service Assistant\",\"hourlyRate\":11.0}",convertedList);
         }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+    /**
+     * Main author: Jamie Lawlor
+     */
+    @Test
+    void socketConnectionTest(){
+        System.out.println("Test 15- check if Socket Connection works");
+        try{
+            socket= new Socket("localhost", 8888);
+        } catch (IOException e) {
+            assertNotNull(socket);
+        }
+    }
+    /**
+     * Main author: Jamie Lawlor
+     */
+    @Test
+    void displayProductsThatEmployeeOverseesTest(){
+        System.out.println("Test 15- check if products are displaying by the id of the employee that oversees them");
+        try{
+            List<Products> productsList = ed.getAllProductsBasedOnEmployeeID(2);
+            assertNotNull(productsList);
+            assertEquals(3, productsList.size());
+        }catch (DaoException e){
             e.printStackTrace();
         }
     }
