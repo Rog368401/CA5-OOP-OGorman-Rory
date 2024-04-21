@@ -1,4 +1,3 @@
-
 package ClientServer;
 
 import com.google.gson.Gson;
@@ -18,10 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-
 public class Client {
     private static DataOutputStream dataOutputStream = null;
     private static DataInputStream dataInputStream = null;
+
     public static void main(String[] args) {
         Client client = new Client();
         client.start();
@@ -100,10 +99,11 @@ public class Client {
                     hourlyRate = key.nextFloat();
 
                     Employee newEmployee = new Employee(0, firstName, lastName, age, department, role, hourlyRate);
+                    //Sending employee object as a JSON to server so it can process the data
 
                     String jsonRequest = gsonParser.toJson(newEmployee);
                     out.println(jsonRequest);
-
+                    //Retrieving the result
                     String newEmployeeJson = in.readLine();
                     System.out.println(newEmployeeJson);
 
@@ -121,9 +121,9 @@ public class Client {
 
                     System.out.println(serverResponse);
 
-                }else if (userRequest.startsWith("5")) {
+                } else if (userRequest.startsWith("5")) {
                     boolean validInput = false;
-
+                    //Check for correct input from user
                     while (!validInput) {
                         System.out.println("Which image would you like to select?: DkIT, Dog, Oracle, Github");
                         String userInput = key.nextLine();
@@ -147,21 +147,21 @@ public class Client {
                             validInput = true;
                             receiveFile("images/Oracle_received.png");
 
-                        }else if (userInput.equalsIgnoreCase("Github")){
+                        } else if (userInput.equalsIgnoreCase("Github")) {
                             out.println(userInput);
                             validInput = true;
                             receiveFile("images/Github_received.png");
 
-                        }else {
+                        } else {
                             System.out.println("Invalid image....Please try again");
                         }
 
                     }
 
-                }else if (userRequest.startsWith("6")){
+                } else if (userRequest.startsWith("6")) {
 
                     Scanner kbrd = new Scanner(System.in);
-                    boolean idCheck=false;
+                    boolean idCheck = false;
                     do {
                         System.out.println("Please enter an Employee ID that oversees products (2,4,5,6): ");
                         int employeeID = kbrd.nextInt();
@@ -169,24 +169,23 @@ public class Client {
                             out.println(employeeID);
                             String serverResponse = in.readLine();
                             Type productsListType = new TypeToken<ArrayList<Products>>() {
-                            }.getType();    // Using TypeToken for the gson parser to create arraylist of employees
+                            }.getType();    // Using TypeToken for the gson parser to create arraylist of products
 
                             List<Products> productsList = new Gson().fromJson(serverResponse, productsListType);   // parse the ArrayList from json
 
-                            System.out.println(" * Products that employee "+employeeID+" is in charge of * \n");
+                            System.out.println(" * Products that employee " + employeeID + " is in charge of * \n");
 
-                            // iterate through employees and display each employee using the toString() method
+                            // iterate through products and display each product using the toString() method
                             for (Products p : productsList) {
                                 System.out.println(p.toString());
                             }
-                            idCheck=true;
-                        }else{
+                            idCheck = true;
+                        } else {
                             System.out.println("This employee doesn't oversee any products\n");
                         }
                     } while (!idCheck);
 
-                }
-                else if (userRequest.startsWith("0")) {// if the user has entered the "quit" command
+                } else if (userRequest.startsWith("0")) {// if the user has entered the "quit" command
 
                     String response = in.readLine();   // wait for response -
                     System.out.println("Client message: Response from server: \"" + response + "\"");
@@ -208,15 +207,16 @@ public class Client {
         System.out.println("Exiting client, but server may still be running.");
 
     }
+
     /**
      * Main Author : Rory O'Gorman
      */
 
-    public void displayClientMenu(){
-        System.out.println("\n1. Display entity by id in JSON format");
-        System.out.println("2. Display all entities in JSON format");
-        System.out.println("3. Add an entity");
-        System.out.println("4. Delete an entity");
+    public void displayClientMenu() {
+        System.out.println("\n1. Display entity by Employee ID");
+        System.out.println("2. Display all entities (Employees)");
+        System.out.println("3. Add an entity (Employee)");
+        System.out.println("4. Delete an entity (By ID)");
         System.out.println("5. Get Images List");
         System.out.println("6. Display products that an employee oversees");
         System.out.println("0. Quit");
@@ -225,8 +225,7 @@ public class Client {
     }
 
     private static void receiveFile(String fileName)
-            throws Exception
-    {
+            throws Exception {
         int bytes = 0;
         FileOutputStream fileOutputStream = new FileOutputStream(fileName);
 
@@ -241,7 +240,7 @@ public class Client {
         System.out.println("Server:  Bytes remaining to be read from socket: ");
 
         // next, read the raw bytes in chunks (buffer size) that make up the image file
-        while (size > 0 && (bytes = dataInputStream.read(buffer, 0,(int)Math.min(buffer.length, size))) != -1) {
+        while (size > 0 && (bytes = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, size))) != -1) {
 
             // above, we read a number of bytes from stream to fill the buffer (if there are enough remaining)
             // - the number of bytes we must read is the smallest (min) of: the buffer length and the remaining size of the file

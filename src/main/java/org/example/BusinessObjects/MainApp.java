@@ -111,7 +111,6 @@ public class MainApp {
                     System.out.printf("%-12d %-12s %-12s %-5d %-26s %-26s €%.2f%n",
                             e.getEmpID(), e.getFirstName(), e.getLastName(), e.getAge(), e.getDepartment(), e.getRole(), e.getHourlyRate());
 
-//                System.out.println("Employee: " + e.toString());
             }
         } catch (DaoException ex) {
             ex.printStackTrace();
@@ -146,22 +145,24 @@ public class MainApp {
         System.out.println("Enter the id of the employee you wish to delete: ");
         id = key.nextInt();
         try {
-            for (Employee e: IEmployeeDao.getAllEmployees()){
-                if (id==e.getEmpID()){
+            //For loop that will display the details of the employee the user selected
+            for (Employee e : IEmployeeDao.getAllEmployees()) {
+                if (id == e.getEmpID()) {
                     System.out.println("----------------------------");
-                    System.out.println("FIRST NAME: "+e.getFirstName());
-                    System.out.println("LAST NAME: "+e.getLastName());
-                    System.out.println("AGE: "+e.getAge());
-                    System.out.println("DEPARTMENT: "+e.getDepartment());
-                    System.out.println("ROLE: "+e.getRole());
-                    System.out.println("HOURLY RATE: "+e.getHourlyRate());
+                    System.out.println("FIRST NAME: " + e.getFirstName());
+                    System.out.println("LAST NAME: " + e.getLastName());
+                    System.out.println("AGE: " + e.getAge());
+                    System.out.println("DEPARTMENT: " + e.getDepartment());
+                    System.out.println("ROLE: " + e.getRole());
+                    System.out.println("HOURLY RATE: " + e.getHourlyRate());
                     System.out.println("----------------------------");
 
                     int deletedId = IEmployeeDao.DeleteEmployee(id);
                     System.out.println("Employee with ID " + deletedId + " has been deleted successfully.");
                     break;
                 }
-                if (IEmployeeDao.findEmployeeById(id)==null){
+                //Check if id is in database
+                if (IEmployeeDao.findEmployeeById(id) == null) {
                     System.out.println("Employee does not exist in database");
                 }
             }
@@ -174,13 +175,9 @@ public class MainApp {
         EmployeeDaoInterface IEmployeeDao = new MySqlEmployeeDao();
         Scanner key = new Scanner(System.in);
 
-        String firstName;
-        String lastName;
+        String firstName, lastName, department, role;
         int age;
-        String department;
-        String role;
         float hourlyRate;
-
 
         System.out.println("* ADD AN EMPLOYEE *\n");
         System.out.println("Please Enter New Employee Details: \n");
@@ -203,7 +200,8 @@ public class MainApp {
         hourlyRate = key.nextFloat();
 
         try {
-            int empID=IEmployeeDao.getAllEmployees().size()+1;
+            //Gets the correct id value for the employee
+            int empID = IEmployeeDao.getAllEmployees().size() + 1;
             Employee e = new Employee(empID, firstName, lastName, age, department, role, hourlyRate);
             Employee employee = IEmployeeDao.InsertEmployee(e);
             System.out.println("Employee inserted successfully");
@@ -217,11 +215,8 @@ public class MainApp {
         Scanner key = new Scanner(System.in);
         EmployeeDaoInterface IEmployeeDao = new MySqlEmployeeDao();
 
-        String firstName;
-        String lastName;
+        String firstName, lastName, department, role;
         int age;
-        String department;
-        String role;
         float hourlyRate;
 
         System.out.println("* UPDATE EMPLOYEE DETAILS *\n");
@@ -301,7 +296,7 @@ public class MainApp {
             Employee employee = IEmployeeDao.updateEmployee(empID, updateEmployee);
             System.out.println("Employee updated successfully");
             System.out.println("Updated Employee: " + IEmployeeDao.findEmployeeById(employee.getEmpID()));
-        }catch (DaoException ex) {
+        } catch (DaoException ex) {
             ex.printStackTrace();
         }
     }
@@ -319,6 +314,7 @@ public class MainApp {
 
         System.out.println("What would you like to filter entities by (firstName, lastName, age, department, role, hourlyRate): ");
         input = key.nextLine();
+//Checking for invalid inputs
 
         if (!input.equalsIgnoreCase("firstName") && !input.equalsIgnoreCase("lastName") && !input.equalsIgnoreCase("age") && !input.equalsIgnoreCase("department") && !input.equalsIgnoreCase("role") && !input.equalsIgnoreCase("hourlyRate")) {
             System.out.println("\nInvalid option... make sure to check that your option is inputted as displayed.");
@@ -329,7 +325,7 @@ public class MainApp {
                     employeesList = VIEmployeeDao.findEmployeesUsingFilter(input, comp);
                     for (Employee e : employeesList)
                         System.out.println("Employee: " + e.toString());
-
+//Calling comparators from DTO folder
                 } else if (input.equalsIgnoreCase("lastName")) {
                     LastNameComparator comp = new LastNameComparator();
                     employeesList = VIEmployeeDao.findEmployeesUsingFilter(input, comp);
@@ -414,10 +410,11 @@ public class MainApp {
                 System.out.println("Please enter an Employee ID that oversees products (2,4,5,6): ");
                 int employeeID = kbrd.nextInt();
 
+                //Check that the ID selected by the user has products that they are in charge of.
                 if (employeeID == 2 || employeeID == 4 || employeeID == 5 || employeeID == 6) {
                     List<Products> productsList = IEmployeeDao.getAllProductsBasedOnEmployeeID(employeeID);
                     System.out.println("_____________________________________________________________________________________________________________");
-                    System.out.printf("%47s'S PRODUCTS%n",IEmployeeDao.findEmployeeById(employeeID).getFirstName().toUpperCase());
+                    System.out.printf("%47s'S PRODUCTS%n", IEmployeeDao.findEmployeeById(employeeID).getFirstName().toUpperCase());
                     System.out.println("_____________________________________________________________________________________________________________");
                     System.out.printf("%-16s %-36s %-16s %-16s %-16s%n", "Product ID", "ProductName", "ProductType", "Quantity", "Price");
                     System.out.println("_____________________________________________________________________________________________________________");
@@ -425,9 +422,9 @@ public class MainApp {
                     // printing each employee entity
                     for (Products p : productsList)
                         System.out.printf("%-16d %-36s %-19s %-13d €%.2f%n",
-                                p.getProduct_ID(),p.getProductName(),p.getProductType(),p.getQuantity(),p.getPrice());
-
-                    idCheck=true;
+                                p.getProduct_ID(), p.getProductName(), p.getProductType(), p.getQuantity(), p.getPrice());
+// printing each product entity
+                    idCheck = true;
                 } else {
                     System.out.println("This employee doesn't oversee any products");
                 }

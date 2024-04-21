@@ -1,8 +1,10 @@
 package ClientServer;
+
 import org.example.DAOs.JsonConverter;
 import com.google.gson.Gson;
 
 import java.net.SocketException;
+
 import org.example.DAOs.MySqlEmployeeDao;
 import org.example.DTOs.Employee;
 import org.example.DTOs.Products;
@@ -127,43 +129,53 @@ class ClientHandler implements Runnable {
                 } else if (request.startsWith("2")) {
                     List<Employee> employeesList = ed.getAllEmployees(); // get all of the employees first from the ArrayList using the getAllEmployees() method
 
-                    try{
-                        if(employeesList.isEmpty()){
+                    try {
+                        if (employeesList.isEmpty()) {
                             System.out.println("Sever message: No employees exist in the database. ");
                             socketWriter.println("No employees have been found in the database.");
-                        }else{
+                        } else {
                             clientResponse = jsonConverter.employeesListToJson(employeesList);      // call the employeesListToJson method using the jsonConverter object
 
                             socketWriter.println(clientResponse);     // sending the response back to the client - response is displaying all entities in json format
 
                             System.out.println("Server message: display all entities response sent to client.");
                         }
-                    }catch(DaoException ex){
+                    } catch (DaoException ex) {
                         socketWriter.println("Failed to Display all Entities. " + ex.getMessage());
                     }
 
-                } else if (request.startsWith("3")) {
+                }
+                /**
+                 * Main Author : Jamie Lawlor
+                 *
+                 * Feature 11: Add an entity
+                 */
 
-                    clientResponse=socketReader.readLine();
-                    Employee e=gsonParser.fromJson(clientResponse, Employee.class);
+                else if (request.startsWith("3")) {
+//Getting the response from the client
+                    clientResponse = socketReader.readLine();
+                    //Turning the JSON into an employee object for use
+                    Employee e = gsonParser.fromJson(clientResponse, Employee.class);
                     try {
                         ed.InsertEmployee(e);
-                        socketWriter.println("Sucessfully added employee to database: \n"+gsonParser.toJson(e));
-                    }catch (DaoException ex){
-                        socketWriter.println(gsonParser.toJson("Failed to add employee to database: "+ex.getMessage()));
+                        //Sending result back to client
+                        socketWriter.println("Sucessfully added employee to database: \n" + gsonParser.toJson(e));
+                    } catch (DaoException ex) {
+                        socketWriter.println(gsonParser.toJson("Failed to add employee to database: " + ex.getMessage()));
                     }
 
-                }else if (request.startsWith("4")) {
+                } else if (request.startsWith("4")) {
                     int employeeId = Integer.parseInt(socketReader.readLine());  // reading in the Employee ID
-                    System.out.println("Recieved Employee ID :" + employeeId);
+                    System.out.println("Received Employee ID :" + employeeId);
+
 
                     try {
                         Employee employee = ed.findEmployeeById(employeeId);
 
-                        if(employee != null){
+                        if (employee != null) {
                             ed.DeleteEmployee(employeeId);     // calling the deleteEmployee method and passing in the Employee ID
                             socketWriter.println("Successfully deleted employee from the database. Employee ID = " + gsonParser.toJson(employeeId));  // sending message to client - employee exists and has been deleted
-                        }else{
+                        } else {
                             System.out.println("Server Message: An Employee with the ID: " + employeeId + " does not exist in the Database.");
                             socketWriter.println("An Employee with the ID: " + employeeId + " does not exist in the Database.");        // sending message to client - employeeID doesn't exist
                         }
@@ -173,7 +185,7 @@ class ClientHandler implements Runnable {
                     }
 
 
-                }else if (request.startsWith("5")) {
+                } else if (request.startsWith("5")) {
                     ArrayList<String> images = new ArrayList<>();
                     images.add("images/Dkit.jpg");
                     images.add("images/Dog.jpg");
@@ -181,7 +193,7 @@ class ClientHandler implements Runnable {
                     images.add("images/Github.png");
                     //Sending list of images to client in a JSON Format
                     socketWriter.println(gsonParser.toJson(images));
-                    String clientUserInput=socketReader.readLine();
+                    String clientUserInput = socketReader.readLine();
                     if (clientUserInput.equalsIgnoreCase("DkIT") || clientUserInput.equalsIgnoreCase("Dog") || clientUserInput.equalsIgnoreCase("Oracle") || clientUserInput.equalsIgnoreCase("Github")) {
                         dataInputStream = new DataInputStream(clientSocket.getInputStream());
                         dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -189,14 +201,14 @@ class ClientHandler implements Runnable {
                         dataInputStream.close();
                         dataInputStream.close();
                     }
-                }else if (request.startsWith("6")){
+                } else if (request.startsWith("6")) {
+                    //Get the id that was passed from client
                     int employeeID = Integer.parseInt(socketReader.readLine());
-                    List<Products> productsList = ed.getAllProductsBasedOnEmployeeID(employeeID); // get all of the employees first from the ArrayList using the getAllEmployees() method
-                    clientResponse=gsonParser.toJson(productsList);
-                    socketWriter.println(clientResponse);     // sending the response back to the client - response is displaying all entities in json format
+                    List<Products> productsList = ed.getAllProductsBasedOnEmployeeID(employeeID);
+                    clientResponse = gsonParser.toJson(productsList);
+                    socketWriter.println(clientResponse);     // sending the response back to the client
                     System.out.println("Server message: display products response sent to client.");
-                }
-                else if (request.startsWith("0")){
+                } else if (request.startsWith("0")) {
                     socketWriter.println("Goodbye");
                     System.out.println("Server message: Client has notified us that it is quitting.");
                 } else {
@@ -204,15 +216,14 @@ class ClientHandler implements Runnable {
                     System.out.println("Server message: Invalid request from client.");
                 }
             }
-        }
-        catch (SocketException ex) {
+        } catch (SocketException ex) {
             // Had to include SocketException to resolve issue with client shutting down after running images list
             System.out.println("SocketException occurred: " + ex.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
 
-        }catch(DaoException ex){
-            System.out.println("Failed to add employee to database: "+ex.getMessage());
+        } catch (DaoException ex) {
+            System.out.println("Failed to add employee to database: " + ex.getMessage());
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -226,9 +237,11 @@ class ClientHandler implements Runnable {
         }
         System.out.println("Server: (ClientHandler): Handler for Client " + clientNum + " is terminating .....");
     }
+
     private static void sendFile(String userInput, ArrayList<String> path) throws Exception {
         int bytes = 0;
         File file;
+        //Creating a new file based on user's input and which image path to select from the arrayList
         if (userInput.equalsIgnoreCase("DkIT")) {
             file = new File(path.get(0));
         } else if (userInput.equalsIgnoreCase("Dog")) {
@@ -244,7 +257,7 @@ class ClientHandler implements Runnable {
         dataOutputStream.writeLong(file.length());
         byte[] buffer = new byte[4 * 1024]; //4 kilobyte buffer
         // read bytes from file into the buffer until buffer is full or we reached end of file
-        while ((bytes = fileInputStream.read(buffer))!= -1) {
+        while ((bytes = fileInputStream.read(buffer)) != -1) {
             // Send the buffer contents to Client Socket, along with the count of the number of bytes
             dataOutputStream.write(buffer, 0, bytes);
             dataOutputStream.flush();
